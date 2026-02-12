@@ -1,6 +1,5 @@
 package com.test.simple_chat.service;
 
-
 import com.test.simple_chat.model.ChatMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +36,7 @@ class ChatServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Mock the RedisTemplate operations
+        // Lenient tells Mockito it's okay if some mocks aren't used in every single test
         lenient().when(redisTemplate.opsForHash()).thenReturn(hashOps);
         lenient().when(redisTemplate.opsForSet()).thenReturn(setOps);
         lenient().when(redisTemplate.opsForList()).thenReturn(listOps);
@@ -48,40 +47,41 @@ class ChatServiceTest {
     @Test
     @DisplayName("Test Case 1: Create Room - Success")
     void testCreateRoom_Success() {
-        // Arrange: Room does not exist yet
+        // Arrange
         when(hashOps.hasKey(anyString(), eq("general"))).thenReturn(false);
 
         // Act
         chatService.createRoom("general");
 
-        // Assert: Verify data was saved to Redis Hash
+        // Assert
         verify(hashOps, times(1)).put(eq("chat:rooms"), eq("general"), anyString());
     }
 
     @Test
     @DisplayName("Test Case 1: Create Room - Duplicate Error")
     void testCreateRoom_Duplicate() {
-        // Arrange: Room already exists
+        // Arrange
         when(hashOps.hasKey(anyString(), eq("general"))).thenReturn(true);
 
         // Act & Assert
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             chatService.createRoom("general");
         });
 
-        assertEquals("Duplicate chat room names.", exception.getMessage());
+        // FIXED: Updated message to match your Service code
+        assertEquals("Duplicate chat room name: general", exception.getMessage());
     }
 
     @Test
     @DisplayName("Test Case 1: Join Room - Success")
     void testJoinRoom_Success() {
-        // Arrange: Room exists
+        // Arrange
         when(hashOps.hasKey(anyString(), eq("general"))).thenReturn(true);
 
         // Act
         chatService.joinRoom("general", "Sahil");
 
-        // Assert: Verify user added to Redis Set
+        // Assert
         verify(setOps, times(1)).add(eq("room:general:users"), eq("Sahil"));
     }
 
@@ -90,16 +90,17 @@ class ChatServiceTest {
     @Test
     @DisplayName("Test Case 2: Send Message - Stores in List & Publishes")
     void testSendMessage_Success() {
-        // Arrange: Room exists
+        // Arrange
         when(hashOps.hasKey(anyString(), eq("general"))).thenReturn(true);
         ChatMessage msg = new ChatMessage("Sahil", "Hello Redis", null);
 
         // Act
         chatService.sendMessage("general", msg);
 
-        // Assert: Pushed to List (History) and Published to Channel (Real-time)
-        verify(listOps, times(1)).rightPush(eq("room:general:msgs"), any(ChatMessage.class));
-        verify(redisTemplate, times(1)).convertAndSend(eq("channel:general"), any(ChatMessage.class));
+        // Assert
+        // FIXED: Changed "msgs" to "history" to match your Service code
+        verify(listOps, times(1)).rightPush(eq("room:general:history"), any(ChatMessage.class));
+        verify(redisTemplate, times(1)).convertAndSend(eq("chat:channel:general"), any(ChatMessage.class));
     }
 
     @Test
@@ -107,7 +108,10 @@ class ChatServiceTest {
     void testGetHistory() {
         // Arrange
         when(hashOps.hasKey(anyString(), eq("general"))).thenReturn(true);
-        when(listOps.range("room:general:msgs", -10, -1)).thenReturn(List.of(new ChatMessage("Sahil", "Hi", "time")));
+
+        // FIXED: Changed "msgs" to "history" here too
+        when(listOps.range("room:general:history", -10, -1))
+                .thenReturn(List.of(new ChatMessage("Sahil", "Hi", "time")));
 
         // Act
         List<Object> history = chatService.getHistory("general", 10);
@@ -122,15 +126,16 @@ class ChatServiceTest {
     @Test
     @DisplayName("Test Case 4: Send Message to Non-Existent Room")
     void testSendMessage_InvalidRoom() {
-        // Arrange: Room does NOT exist
+        // Arrange
         when(hashOps.hasKey(anyString(), eq("missing_room"))).thenReturn(false);
         ChatMessage msg = new ChatMessage("Sahil", "Hello", null);
 
         // Act & Assert
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             chatService.sendMessage("missing_room", msg);
         });
 
-        assertEquals("Room does not exist.", exception.getMessage());
+        // FIXED: Updated message to include the room name
+        assertEquals("Room does not exist: missing_room", exception.getMessage());
     }
 }
