@@ -20,9 +20,9 @@ public class RedisConnectionTester implements CommandLineRunner {
             System.out.println("Testing Redis Connection...");
             redisTemplate.opsForValue().set("test_connection", "Hello Upstash!");
             String value = redisTemplate.opsForValue().get("test_connection");
-            System.out.println("✅ SUCCESS! Connected to Redis. Value: " + value);
+            System.out.println("SUCCESS! Connected to Redis. Value: " + value);
         } catch (Exception e) {
-            System.err.println("❌ FAILED to connect to Redis!");
+            System.err.println("FAILED to connect to Redis!");
             System.err.println("REASON: " + e.getMessage());
             // This prints the hidden detail we need:
             e.printStackTrace();

@@ -14,18 +14,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("status", "error", "message", ex.getMessage()));
     }
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(Exception.class) // Fallback
     public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
-        // This prints the error to your IDE console
-        ex.printStackTrace();
-
-        // This sends the actual error to Postman
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("status", "error", "message", ex.getMessage()));
+                .body(Map.of("status", "error", "message", "An unexpected error occurred."));
     }
-//    @ExceptionHandler(Exception.class) // Fallback
-//    public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(Map.of("status", "error", "message", "An unexpected error occurred."));
-//    }
 }
