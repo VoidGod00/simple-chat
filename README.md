@@ -2,6 +2,8 @@
 
 A high-performance, real-time chat application built with **Spring Boot** and **Redis**. This project demonstrates the power of Redis data structures (Lists, Sets, Pub/Sub) to handle real-time messaging, chat history, and room management with low latency.
 
+***NOTE**=I am using render to deploy this project and it have a limitation that is "Your free instance will spin down with inactivity, which can delay requests by 50 seconds or more" due to which it is taking so much time to test in postman.
+
 ## 🚀 Features
 
 * **Real-Time Messaging:** Uses **Redis Publish/Subscribe** to broadcast messages instantly to all users in a room.
